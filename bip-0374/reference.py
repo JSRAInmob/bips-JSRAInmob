@@ -7,6 +7,7 @@ import random
 from secp256k1 import G, GE
 import sys
 import unittest
+import secrets
 
 
 DLEQ_TAG_AUX = "BIP0374/aux"
@@ -98,21 +99,21 @@ def dleq_verify_proof(
 
 class DLEQTests(unittest.TestCase):
     def test_dleq(self):
-        seed = random.randrange(sys.maxsize)
-        random.seed(seed)
+        seed = secrets.SystemRandom().randrange(sys.maxsize)
+        secrets.SystemRandom().seed(seed)
         print(f"PRNG seed is: {seed}")
         for _ in range(10):
             # generate random keypairs for both parties
-            a = random.randrange(1, GE.ORDER)
+            a = secrets.SystemRandom().randrange(1, GE.ORDER)
             A = a * G
-            b = random.randrange(1, GE.ORDER)
+            b = secrets.SystemRandom().randrange(1, GE.ORDER)
             B = b * G
 
             # create shared secret
             C = a * B
 
             # create dleq proof
-            rand_aux = random.randbytes(32)
+            rand_aux = secrets.SystemRandom().randbytes(32)
             proof = dleq_generate_proof(a, B, rand_aux)
             self.assertTrue(proof is not None)
             # verify dleq proof
@@ -122,14 +123,14 @@ class DLEQTests(unittest.TestCase):
             # flip a random bit in the dleq proof and check that verification fails
             for _ in range(5):
                 proof_damaged = list(proof)
-                proof_damaged[random.randrange(len(proof))] ^= 1 << (
+                proof_damaged[secrets.SystemRandom().randrange(len(proof))] ^= 1 << (
                     random.randrange(8)
                 )
                 success = dleq_verify_proof(A, B, C, bytes(proof_damaged))
                 self.assertFalse(success)
 
             # create the same dleq proof with a message
-            message = random.randbytes(32)
+            message = secrets.SystemRandom().randbytes(32)
             proof = dleq_generate_proof(a, B, rand_aux, m=message)
             self.assertTrue(proof is not None)
             # verify dleq proof with a message
@@ -139,7 +140,7 @@ class DLEQTests(unittest.TestCase):
             # flip a random bit in the dleq proof and check that verification fails
             for _ in range(5):
                 proof_damaged = list(proof)
-                proof_damaged[random.randrange(len(proof))] ^= 1 << (
+                proof_damaged[secrets.SystemRandom().randrange(len(proof))] ^= 1 << (
                     random.randrange(8)
                 )
                 success = dleq_verify_proof(A, B, C, bytes(proof_damaged))

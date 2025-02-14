@@ -6,9 +6,9 @@
 WARNING: This code is slow, uses bad randomness, does not properly protect
 keys, and is trivially vulnerable to side channel attacks. Do not use for
 anything but tests."""
-import random
 import hashlib
 import hmac
+import secrets
 
 def TaggedHash(tag, data):
     ss = hashlib.sha256(tag.encode('utf-8')).digest()
@@ -508,7 +508,7 @@ class ECKey():
 
     def generate(self, compressed=True):
         """Generate a random private key (compressed or uncompressed)."""
-        self.set(random.randrange(1, SECP256K1_ORDER).to_bytes(32, 'big'), compressed)
+        self.set(secrets.SystemRandom().randrange(1, SECP256K1_ORDER).to_bytes(32, 'big'), compressed)
         return self
 
     def get_bytes(self):
@@ -618,7 +618,7 @@ class ECKey():
         if rfc6979:
             k = int.from_bytes(rfc6979_nonce(self.secret.to_bytes(32, 'big') + msg), 'big')
         else:
-            k = random.randrange(1, SECP256K1_ORDER)
+            k = secrets.SystemRandom().randrange(1, SECP256K1_ORDER)
         R = SECP256K1.affine(SECP256K1.mul([(SECP256K1_G, k)]))
         r = R[0] % SECP256K1_ORDER
         s = (modinv(k, SECP256K1_ORDER) * (z + self.secret * r)) % SECP256K1_ORDER
@@ -687,7 +687,7 @@ def generate_schnorr_nonce():
 
     See https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki.
     This implementation ensures the y-coordinate of the nonce point is even."""
-    kp = random.randrange(1, SECP256K1_ORDER)
+    kp = secrets.SystemRandom().randrange(1, SECP256K1_ORDER)
     assert kp != 0
     R = SECP256K1.affine(SECP256K1.mul([(SECP256K1_G, kp)]))
     k = kp if R[1] % 2 == 0 else SECP256K1_ORDER - kp

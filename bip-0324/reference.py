@@ -1,9 +1,9 @@
 """Reference implementation for the cryptographic aspects of BIP-324"""
 
 import sys
-import random
 import hashlib
 import hmac
+import secrets
 
 ### BIP-340 tagged hash
 
@@ -372,15 +372,15 @@ def xswiftec_inv(x, u, case):
 def xelligatorswift(x):
     """Given a field element X on the curve, find (u, t) that encode them."""
     while True:
-        u = FE(random.randrange(1, GE.ORDER))
-        case = random.randrange(0, 8)
+        u = FE(secrets.SystemRandom().randrange(1, GE.ORDER))
+        case = secrets.SystemRandom().randrange(0, 8)
         t = xswiftec_inv(x, u, case)
         if t is not None:
             return u, t
 
 def ellswift_create():
     """Generate a (privkey, ellswift_pubkey) pair."""
-    priv = random.randrange(1, GE.ORDER)
+    priv = secrets.SystemRandom().randrange(1, GE.ORDER)
     u, t = xelligatorswift((priv * SECP256K1_G).x)
     return priv.to_bytes(32, 'big'), u.to_bytes() + t.to_bytes()
 
